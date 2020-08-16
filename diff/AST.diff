@@ -1,0 +1,6 @@
+6d5
+< import Data.Semigroup
+158,160d156
+< 
+< instance Semigroup (GContext a) where
+<   (Context gamma) <> (Context delta) = Context (delta ++ gamma)

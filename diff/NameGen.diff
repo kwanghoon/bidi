@@ -1,0 +1,22 @@
+33,38c33,35
+<   vvs <- gets varNames
+<   case vvs of
+<     (v:vs) -> do 
+<       modify $ \s -> s {varNames = vs}
+<       return v
+<     [] -> error "No fresh variable can be created."
+---
+>   v:vs <- gets varNames
+>   modify $ \s -> s {varNames = vs}
+>   return v
+43,48c40,42
+<   vvs <- gets tvarNames
+<   case vvs of
+<     (v:vs) -> do
+<       modify $ \s -> s {tvarNames = vs}
+<       return v
+<     [] -> error "No fresh type variable can be created."
+---
+>   v:vs <- gets tvarNames
+>   modify $ \s -> s {tvarNames = vs}
+>   return v
