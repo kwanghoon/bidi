@@ -193,7 +193,7 @@ typesynth gamma expr = traceNS "typesynth" (gamma, expr) $ checkwf gamma $
                   (subst (EVar x') x e)
                   (TExists beta)
       return (TFun (TExists alpha) (TExists beta), delta)
-    -- -}
+    -}
     -- {-
     -- ->I=> Full Damas-Milner type inference
     EAbs x e -> do
