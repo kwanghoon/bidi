@@ -12,7 +12,7 @@ data Loc
   = Client            -- c
   | Server            -- s
   | Unknown LVar      -- l
-  | UnknownExist LVar -- l^
+  | UnknownExists LVar -- l^
   deriving (Eq, Show)
 
 -- | Expressions
@@ -86,7 +86,7 @@ tforalls = flip (foldr TForall)
 lvar :: String -> Loc
 lvar = Unknown . LocVar 
 lexists :: String -> Loc
-lexists = UnknownExist . LocVar
+lexists = UnknownExists . LocVar
 lforall :: String -> Polytype -> Polytype
 lforall = LForall . LocVar
 

@@ -42,7 +42,7 @@ instance Pretty Loc where
   bpretty _ Client = showString "client"
   bpretty _ Server = showString "server"
   bpretty d (Unknown lvar) = bpretty d lvar
-  bpretty d (UnknownExist lvar) = showString "∃ " . bpretty d lvar
+  bpretty d (UnknownExists lvar) = showString "∃ " . bpretty d lvar
 
 instance Pretty (Type a) where
   bpretty d typ = case typ of
