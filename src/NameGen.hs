@@ -10,6 +10,7 @@ import Debug.Trace
 data NameState = NameState
   { varNames  :: [Var]
   , tvarNames :: [TVar]
+  , lvarNames :: [LVar]
   , indent    :: Int -- This has no place here, but useful for debugging
   }
 
@@ -17,6 +18,7 @@ initialNameState :: NameState
 initialNameState = NameState
   { varNames  = map (Var . ('$':)) namelist
   , tvarNames = map (TypeVar . ('\'':)) namelist
+  , lvarNames = map (LocVar . ('\'':)) namelist
   , indent    = 0
   }
   where
@@ -46,6 +48,16 @@ freshTVar = do
       modify $ \s -> s {tvarNames = vs}
       return v
     [] -> error "No fresh type variable can be created."
+
+-- | Create a fresh location variable
+freshLVar :: NameGen LVar
+freshLVar = do
+  vvs <- gets lvarNames
+  case vvs of
+    (v:vs) -> do
+      modify $ \s -> s {lvarNames = vs}
+      return v
+    [] -> error "No fresh location variable can be created."
 
 -- | Print some debugging info
 traceNS :: (Pretty a, Pretty b) => String -> a -> NameGen b -> NameGen b
