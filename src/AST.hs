@@ -55,11 +55,11 @@ data TypeKind = Mono | Poly
 -- | Types, indexed by their kind: Monotype or Polytype.
 --   Only Polytypes can have foralls.
 data Type :: TypeKind -> * where
-  TUnit   :: Type a                         -- ^ ()
-  TVar    :: TVar -> Type a                 -- ^ alpha
-  TExists :: TVar -> Type a                 -- ^ alpha^
-  TForall :: TVar -> Type Poly -> Type Poly -- ^ forall alpha. A
-  TFun    :: Type a -> Type a -> Type a     -- ^ A -> B
+  TUnit   :: Type a                                -- ^ ()
+  TVar    :: TVar -> Type a                        -- ^ alpha
+  TExists :: TVar -> Type a                        -- ^ alpha^
+  TForall :: TVar -> Type Poly -> Type Poly        -- ^ forall alpha. A
+  TFun    :: Type a -> Loc -> Type a -> Type a     -- ^ A -loc-> B
 deriving instance Show (Type a)
 deriving instance Eq (Type a)
 
@@ -72,7 +72,7 @@ exists :: String -> Type a
 exists = TExists . TypeVar
 tforall :: String -> Polytype -> Polytype
 tforall = TForall . TypeVar
-(-->) :: Type a -> Type a -> Type a
+(-->) :: Type a -> Loc -> Type a -> Type a
 (-->) = TFun
 infixr 1 -->
 
@@ -82,44 +82,47 @@ tforalls = flip (foldr TForall)
 type Polytype = Type Poly
 type Monotype = Type Mono
 
+just :: Loc -> Maybe Loc
+just loc = Just loc
+
 -- | Is the type a Monotype?
 monotype :: Type a -> Maybe Monotype
 monotype typ = case typ of
-  TUnit       -> Just TUnit
-  TVar v      -> Just $ TVar v
-  TForall _ _ -> Nothing
-  TExists v   -> Just $ TExists v
-  TFun t1 t2  -> TFun <$> monotype t1 <*> monotype t2
+  TUnit           -> Just TUnit
+  TVar v          -> Just $ TVar v
+  TForall _ _     -> Nothing
+  TExists v       -> Just $ TExists v
+  TFun t1 loc t2  -> TFun <$> monotype t1 <*> just loc <*> monotype t2
 
 -- | Any type is a Polytype since Monotype is a subset of Polytype
 polytype :: Type a -> Polytype
 polytype typ = case typ of
-  TUnit       -> TUnit
-  TVar v      -> TVar v
-  TForall v t -> TForall v t
-  TExists v   -> TExists v
-  TFun t1 t2  -> TFun (polytype t1) (polytype t2)
+  TUnit          -> TUnit
+  TVar v         -> TVar v
+  TForall v t    -> TForall v t
+  TExists v      -> TExists v
+  TFun t1 loc t2 -> TFun (polytype t1) loc (polytype t2)
 
 -- | The free type variables in a type
 freeTVars :: Type a -> Set TVar
 freeTVars typ = case typ of
-  TUnit       -> mempty
-  TVar v      -> S.singleton v
-  TForall v t -> S.delete v $ freeTVars t
-  TExists v   -> S.singleton v
-  TFun t1 t2  -> freeTVars t1 `mappend` freeTVars t2
+  TUnit        -> mempty
+  TVar v       -> S.singleton v
+  TForall v t  -> S.delete v $ freeTVars t
+  TExists v    -> S.singleton v
+  TFun t1 _ t2 -> freeTVars t1 `mappend` freeTVars t2
 
 -- | typeSubst A α B = [A/α]B
 typeSubst :: Type a -> TVar -> Type a -> Type a
 typeSubst t' v typ = case typ of
-  TUnit                    -> TUnit
-  TVar v'      | v' == v   -> t'
-               | otherwise -> TVar v'
-  TForall v' t | v' == v   -> TForall v' t
-               | otherwise -> TForall v' (typeSubst t' v t)
-  TExists v'   | v' == v   -> t'
-               | otherwise -> TExists v'
-  TFun t1 t2               -> TFun (typeSubst t' v t1) (typeSubst t' v t2)
+  TUnit                      -> TUnit
+  TVar v'        | v' == v   -> t'
+                 | otherwise -> TVar v'
+  TForall v' t   | v' == v   -> TForall v' t
+                 | otherwise -> TForall v' (typeSubst t' v t)
+  TExists v'     | v' == v   -> t'
+                 | otherwise -> TExists v'
+  TFun t1 loc t2             -> TFun (typeSubst t' v t1) loc (typeSubst t' v t2)
 
 typeSubsts :: [(Type a, TVar)] -> Type a -> Type a
 typeSubsts = flip $ foldr $ uncurry typeSubst
