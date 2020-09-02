@@ -63,6 +63,7 @@ data Type :: TypeKind -> * where
   TExists :: TVar -> Type a                        -- ^ alpha^
   TForall :: TVar -> Type Poly -> Type Poly        -- ^ forall alpha. A
   TFun    :: Type a -> Loc -> Type a -> Type a     -- ^ A -loc-> B
+  LForall :: LVar -> Type Poly -> Type Poly        -- ^ forall loc. A
 deriving instance Show (Type a)
 deriving instance Eq (Type a)
 
@@ -81,6 +82,13 @@ infixr 1 -->
 
 tforalls :: [TVar] -> Polytype -> Polytype
 tforalls = flip (foldr TForall)
+
+lvar :: String -> Loc
+lvar = Unknown . LocVar 
+lexists :: String -> Loc
+lexists = UnknownExist . LocVar
+lforall :: String -> Polytype -> Polytype
+lforall = LForall . LocVar
 
 type Polytype = Type Poly
 type Monotype = Type Mono
