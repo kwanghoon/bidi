@@ -9,9 +9,10 @@ import qualified Data.Set as S
 
 -- | Locations
 data Loc
-  = Client         -- c
-  | Server         -- s
-  | Unknown String -- l
+  = Client            -- c
+  | Server            -- s
+  | Unknown LVar      -- l
+  | UnknownExist LVar -- l^
   deriving (Eq, Show)
 
 -- | Expressions
@@ -49,6 +50,8 @@ infixr 1 $$
 
 newtype Var  = Var     String deriving (Eq, Ord, Show)
 newtype TVar = TypeVar String deriving (Eq, Ord, Show)
+
+newtype LVar = LocVar  String deriving (Eq, Ord, Show)
 
 data TypeKind = Mono | Poly
 
