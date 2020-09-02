@@ -148,11 +148,16 @@ data ContextKind = Complete | Incomplete
 -- | Context elements, indexed by their kind: Complete or Incomplete.
 --   Only Incomplete contexts can have unsolved existentials.
 data ContextElem :: ContextKind -> * where
-  CForall       :: TVar -> ContextElem a             -- ^ alpha
-  CVar          :: Var -> Polytype -> ContextElem a  -- ^ x : A
-  CExists       :: TVar -> ContextElem Incomplete    -- ^ alpha^
-  CExistsSolved :: TVar -> Monotype -> ContextElem a -- ^ alpha^ = tau
-  CMarker       :: TVar -> ContextElem a             -- ^ |> alpha^
+  CForall        :: TVar -> ContextElem a             -- ^ alpha
+  CVar           :: Var -> Polytype -> ContextElem a  -- ^ x : A
+  CExists        :: TVar -> ContextElem Incomplete    -- ^ alpha^
+  CExistsSolved  :: TVar -> Monotype -> ContextElem a -- ^ alpha^ = tau
+  CMarker        :: TVar -> ContextElem a             -- ^ |> alpha^
+
+  CLForall       :: LVar -> ContextElem a             -- ^ l
+  CLExists       :: LVar -> ContextElem Incomplete    -- ^ l^
+  CLExistsSolved :: LVar -> Loc -> ContextElem a      -- ^ l^ = loc
+  CLMarker       :: LVar -> ContextElem a             -- ^ |> l^
 deriving instance Eq (ContextElem a)
 deriving instance Show (ContextElem a)
 
