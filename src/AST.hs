@@ -7,11 +7,18 @@ import Data.Semigroup
 import Data.Set(Set)
 import qualified Data.Set as S
 
+-- | Locations
+data Loc
+  = Client         -- c
+  | Server         -- s
+  | Unknown String -- l
+  deriving (Eq, Show)
+
 -- | Expressions
 data Expr
   = EVar Var            -- ^ x
   | EUnit               -- ^ ()
-  | EAbs Var Expr       -- ^ \x. e
+  | EAbs Var Loc Expr   -- ^ \x @ loc. e
   | EApp Expr Expr      -- ^ e1 e2
   | EAnno Expr Polytype -- ^ e : A
   deriving (Eq, Show)
@@ -19,20 +26,20 @@ data Expr
 -- | subst e' x e = [e'/x]e
 subst :: Expr -> Var -> Expr -> Expr
 subst e' x expr = case expr of
-  EVar x'   | x' == x   -> e'
-            | otherwise -> EVar x'
-  EUnit                 -> EUnit
-  EAbs x' e | x' == x   -> EAbs x' e
-            | otherwise -> EAbs x' (subst e' x e)
-  EApp e1 e2            -> EApp (subst e' x e1) (subst e' x e2)
-  EAnno e t             -> EAnno (subst e' x e) t
+  EVar x'       | x' == x   -> e'
+                | otherwise -> EVar x'
+  EUnit                     -> EUnit
+  EAbs x' loc e | x' == x   -> EAbs x' loc e
+                | otherwise -> EAbs x' loc (subst e' x e)
+  EApp e1 e2                -> EApp (subst e' x e1) (subst e' x e2)
+  EAnno e t                 -> EAnno (subst e' x e) t
 
 -- Smart constructors
 var :: String -> Expr
 var = EVar . Var
 eunit :: Expr
 eunit = EUnit
-eabs :: String -> Expr -> Expr
+eabs :: String -> Loc -> Expr -> Expr
 eabs = EAbs . Var
 infixr 1 $$
 ($$) :: Expr -> Expr -> Expr
