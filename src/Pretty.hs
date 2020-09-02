@@ -35,6 +35,15 @@ instance Pretty Var where
 instance Pretty TVar where
   bpretty _ (TypeVar v) = showString v
 
+instance Pretty LVar where
+  bpretty _ (LocVar v) = showString v
+
+instance Pretty Loc where
+  bpretty _ Client = showString "client"
+  bpretty _ Server = showString "server"
+  bpretty d (Unknown lvar) = bpretty d lvar
+  bpretty d (UnknownExist lvar) = showString "∃ " . bpretty d lvar
+
 instance Pretty (Type a) where
   bpretty d typ = case typ of
     TUnit -> showString "()"
@@ -44,9 +53,13 @@ instance Pretty (Type a) where
     TForall v t -> showParen (d > forall_prec) $
       showString "∀ " . bpretty (forall_prec + 1) v .
       showString ". "      . bpretty forall_prec t
-    TFun t1 t2 -> showParen (d > fun_prec) $
-      bpretty (fun_prec + 1) t1 . showString " → " .
+    TFun t1 loc t2 -> showParen (d > fun_prec) $
+      bpretty (fun_prec + 1) t1 .
+      showString " -" . bpretty d loc  . showString "-> " . -- showString " → " .
       bpretty fun_prec t2
+    LForall l t -> showParen (d > forall_prec) $
+      showString "∀ " . bpretty (forall_prec + 1) l .
+      showString ". "      . bpretty forall_prec t
     where
       exists_prec = 10
       forall_prec :: Int
@@ -57,8 +70,9 @@ instance Pretty Expr where
   bpretty d expr = case expr of
     EVar v       -> bpretty d v
     EUnit        -> showString "()"
-    EAbs v e     -> showParen (d > abs_prec) $
+    EAbs v loc e -> showParen (d > abs_prec) $
       showString "λ" . bpretty (abs_prec + 1) v .
+      showString " @ " . bpretty (abs_prec + 1) loc .
       showString ". " . bpretty abs_prec e
     EApp e1 e2   -> showParen (d > app_prec) $
       bpretty app_prec e1 . showString " " . bpretty (app_prec + 1) e2
@@ -84,6 +98,16 @@ instance Pretty (ContextElem a) where
       showString " = " . bpretty exists_prec t
     CMarker v -> showParen (d > app_prec) $
       showString "▶ " . bpretty (app_prec + 1) v
+
+    CLForall l -> bpretty d l
+    CLExists l -> showParen (d > exists_prec) $
+      showString "∃ " . bpretty exists_prec l
+    CLExistsSolved l loc -> showParen (d > exists_prec) $
+      showString "∃ " . bpretty exists_prec l .
+      showString " = " . bpretty exists_prec loc
+    CLMarker l -> showParen (d > app_prec) $
+      showString "▶ " . bpretty (app_prec + 1) l
+
     where
       exists_prec = 1
       hastype_prec = 1
