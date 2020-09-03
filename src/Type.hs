@@ -258,12 +258,12 @@ typesynthClosed e = let (a, gamma) = evalNameGen $ typesynth mempty e
                      in (apply gamma a, gamma)
 
 -- Examples
-eid :: Expr -- (λx. x) : ∀ t. t → t
-eid = eabs "x" (var "x") -: tforall "t" (tvar "t" --> tvar "t")
+eid :: Expr -- (λx @ l. x) : ∀ t. t → t
+eid = eabs "x" (lvar "l") (var "x") -: tforall "t" (tvar "t" --> lvar "l" $ tvar "t")
 -- Impredicative, so doesn't typecheck
 ididunit :: Expr -- (λid. id id ()) ((λx. x) : ∀ t. t → t)
-ididunit = eabs "id" (((var "id" -: tforall "t" (tvar "t" --> tvar "t"))  $$ var "id") $$ eunit) $$ eid
+ididunit = eabs "id" (lvar "l1") (((var "id" -: tforall "t" (tvar "t" --> lvar "l" $ tvar "t"))  $$ var "id") $$ eunit) $$ eid
 idunit :: Expr -- (λid. id ()) ((λx. x) : ∀ t. t → t)
-idunit = eabs "id" (var "id" $$ eunit) $$ eid
+idunit = eabs "id" (lvar "l") (var "id" $$ eunit) $$ eid
 idid :: Expr -- id id
-idid = (eid $$ eid) -: tforall "t" (tvar "t" --> tvar "t")
+idid = (eid $$ eid) -: tforall "t" (tvar "t" --> lvar "l" $ tvar "t")
