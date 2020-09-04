@@ -17,7 +17,7 @@ lexistentials :: Context -> [LVar]
 lexistentials (Context gamma) = aux =<< gamma
   where aux (CLExists l)           = [l]
         aux (CLExistsSolved l loc) = [l]
-        au  _                      = []
+        aux  _                     = []
 
 unsolved :: Context -> [TVar]
 unsolved (Context gamma) = [alpha | CExists alpha <- gamma]
@@ -160,6 +160,7 @@ apply gamma typ = case typ of
   TForall v t     -> TForall v (apply gamma t)
   TExists v       -> maybe (TExists v) (apply gamma . polytype) $ findSolved gamma v
   TFun t1 loc t2  -> apply gamma t1 `TFun` lapply gamma loc $ apply gamma t2
+  LForall l t     -> LForall l (apply gamma t)
 
 -- | lapply Γ loc = [Γ]loc
 lapply :: Context -> Loc -> Loc

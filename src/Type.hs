@@ -237,11 +237,11 @@ typecheck gamma loc expr typ =
       -- Do alpha conversion to avoid clashes
       l' <- freshLVar
       dropMarker (CLForall l') <$>
-        typecheck (gamma >: CLForall l') loc e (locSubst (UnknownExists l') l a)
+        typecheck (gamma >: CLForall l') loc (locExprSubst (Unknown l') l e) (locSubst (Unknown l') l a)
     -- ->I
     (EAbs x loc0 e, TFun a loc' b) -> do
       x' <- freshVar
-      gamma0 <- subloc gamma loc' loc
+      gamma0 <- subloc gamma loc' loc0
       dropMarker (CVar x' a) <$>
         typecheck (gamma0 >: CVar x' a) loc0 (subst (EVar x') x e) b
     -- Sub
@@ -266,25 +266,23 @@ typesynth gamma loc expr = traceNS "typesynth" (gamma, loc, expr) $ checkwf gamm
       return (a, delta)
     -- 1I=>
     EUnit -> return (TUnit, gamma)
-    {-
+    -- {-
     -- ->I=> Original rule
     EAbs x loc0 e -> do
       x'    <- freshVar
       alpha <- freshTVar
       beta  <- freshTVar
-      l     <- freshLVar
       delta <- dropMarker (CVar x' (TExists alpha)) <$>
-        typecheck (gamma >++ [ CLExistsSolved l loc0
-                             , CExists alpha
+        typecheck (gamma >++ [ CExists alpha
                              , CExists beta
                              , CVar x' (TExists alpha)
                              ])
                   loc0
                   (subst (EVar x') x e)
                   (TExists beta)
-      return (TFun (TExists alpha) (UnknownExists l) (TExists beta), delta)
-    -}
-    -- {-
+      return (TFun (TExists alpha) loc0 (TExists beta), delta)
+    -- -}
+    {-
     -- ->I=> Full Damas-Milner type inference
     EAbs x loc0 e -> do
       x'    <- freshVar
@@ -306,7 +304,7 @@ typesynth gamma loc expr = traceNS "typesynth" (gamma, loc, expr) $ checkwf gamm
       uvars <- replicateM (length evars) freshTVar
       return ( tforalls uvars $ typeSubsts (zip (map TVar uvars) evars) tau
              , delta)
-    -- -}
+    -}
     -- ->E
     EApp e1 e2 -> do
       (a, theta) <- typesynth gamma loc e1
@@ -363,7 +361,7 @@ typesynthClosed e = let (a, gamma) = evalNameGen $ typesynth mempty Client e
 
 -- Examples
 eid :: Expr -- (λx @ l. x) : ∀ t. t → t
-eid = eabs "x" (lvar "l") (var "x") -: tforall "t" (tvar "t" --> lvar "l" $ tvar "t")
+eid = eabs "x" (lvar "l") (var "x") -: lforall "l" (tforall "t" (tvar "t" --> lvar "l" $ tvar "t"))
 -- Impredicative, so doesn't typecheck
 ididunit :: Expr -- (λid. id id ()) ((λx. x) : ∀ t. t → t)
 ididunit = eabs "id" (lvar "l1") (((var "id" -: tforall "t" (tvar "t" --> lvar "l" $ tvar "t"))  $$ var "id") $$ eunit) $$ eid

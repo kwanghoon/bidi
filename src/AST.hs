@@ -180,6 +180,14 @@ locLocSubst loc' l loc0 = case loc0 of
   UnknownExists l' | l' == l   -> loc'
                    | otherwise -> UnknownExists l'
 
+-- | locExprSubst loc l e = [loc/l]e
+locExprSubst loc' l e = case e of 
+  EVar v -> EVar v
+  EUnit -> EUnit
+  EAbs v loc0 e0 -> EAbs v (locLocSubst loc' l loc0) (locExprSubst loc' l e0)
+  EApp e1 e2 -> EApp (locExprSubst loc' l e1) (locExprSubst loc' l e2)
+  EAnno e ty -> EAnno (locExprSubst loc' l e) (locSubst loc' l ty)
+
 data ContextKind = Complete | Incomplete
 
 -- | Context elements, indexed by their kind: Complete or Incomplete.

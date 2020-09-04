@@ -18,7 +18,7 @@ initialNameState :: NameState
 initialNameState = NameState
   { varNames  = map (Var . ('$':)) namelist
   , tvarNames = map (TypeVar . ('\'':)) namelist
-  , lvarNames = map (LocVar . ('\'':)) namelist
+  , lvarNames = map (LocVar . ("\'l_"++)) namelist
   , indent    = 0
   }
   where
