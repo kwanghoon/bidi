@@ -119,12 +119,30 @@ polytype typ = case typ of
 -- | The free type variables in a type
 freeTVars :: Type a -> Set TVar
 freeTVars typ = case typ of
-  TUnit         -> mempty
-  TVar v        -> S.singleton v
-  TForall v t   -> S.delete v $ freeTVars t
-  TExists v     -> S.singleton v
-  TFun t1 _ t2  -> freeTVars t1 `mappend` freeTVars t2
-  LForall loc t -> freeTVars t
+  TUnit        -> mempty
+  TVar v       -> S.singleton v
+  TForall v t  -> S.delete v $ freeTVars t
+  TExists v    -> S.singleton v
+  TFun t1 _ t2 -> freeTVars t1 `mappend` freeTVars t2
+  LForall l t  -> freeTVars t
+
+-- | The free location variables in a type
+freeLVars :: Type a -> Set LVar
+freeLVars typ = case typ of
+  TUnit          -> mempty
+  TVar v         -> mempty
+  TForall v t    -> freeLVars t
+  TExists v      -> mempty
+  TFun t1 loc t2 -> freeLVarsIn loc 
+  LForall l t    -> S.delete l $ freeLVars t
+
+-- | The free location variables in a location
+freeLVarsIn :: Loc -> Set LVar
+freeLVarsIn loc = case loc of
+  Client          -> mempty
+  Server          -> mempty
+  Unknown l       -> S.singleton l
+  UnknownExists l -> S.singleton l
 
 -- | typeSubst A α B = [A/α]B
 typeSubst :: Type a -> TVar -> Type a -> Type a
@@ -137,11 +155,30 @@ typeSubst t' v typ = case typ of
   TExists v'     | v' == v   -> t'
                  | otherwise -> TExists v'
   TFun t1 loc t2             -> TFun (typeSubst t' v t1) loc (typeSubst t' v t2)
-  LForall loc t              -> LForall loc (typeSubst t' v t)
+  LForall l t                -> LForall l (typeSubst t' v t)
 
 typeSubsts :: [(Type a, TVar)] -> Type a -> Type a
 typeSubsts = flip $ foldr $ uncurry typeSubst
 
+-- | locSubst loc l B = [loc/l]B
+locSubst :: Loc -> LVar -> Type a -> Type a
+locSubst loc' l typ = case typ of
+  TUnit                     -> TUnit
+  TVar v'                   -> TVar v'
+  TForall v' t              -> TForall v' (locSubst loc' l t)
+  TExists v'                -> TExists v'
+  TFun t1 loc t2            -> TFun (locSubst loc' l t1) (locLocSubst loc' l loc) (locSubst loc' l t2)
+  LForall l' t  | l' == l   -> LForall l' t
+                | otherwise -> LForall l' (locSubst loc' l t)
+
+-- | locLocSubst loc l loc0 = [loc/l]loc0
+locLocSubst loc' l loc0 = case loc0 of
+  Client                       -> Client
+  Server                       -> Server
+  Unknown l'       | l' == l   -> loc'
+                   | otherwise -> Unknown l'
+  UnknownExists l' | l' == l   -> loc'
+                   | otherwise -> UnknownExists l'
 
 data ContextKind = Complete | Incomplete
 

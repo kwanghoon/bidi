@@ -29,6 +29,14 @@ instance (Pretty a, Pretty b, Pretty c) => Pretty (a, b, c) where
     showString ", " . bpretty 0 z .
     showString ")"
 
+instance (Pretty a, Pretty b, Pretty c, Pretty d) => Pretty (a, b, c, d) where
+  bpretty _ (w, x, y, z) =
+    showString "("  . bpretty 0 w .
+    showString ", " . bpretty 0 x .
+    showString ", " . bpretty 0 y .
+    showString ", " . bpretty 0 z .
+    showString ")"
+
 instance Pretty Var where
   bpretty _ (Var v) = showString v
 
