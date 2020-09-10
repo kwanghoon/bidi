@@ -21,6 +21,7 @@ data Expr
   | EUnit               -- ^ ()
   | EAbs Var Loc Expr   -- ^ \x @ loc. e
   | EApp Expr Expr      -- ^ e1 e2
+  | ELocApp Expr Loc      -- ^ e loc
   | EAnno Expr Polytype -- ^ e : A
   deriving (Eq, Show)
 
@@ -33,6 +34,7 @@ subst e' x expr = case expr of
   EAbs x' loc e | x' == x   -> EAbs x' loc e
                 | otherwise -> EAbs x' loc (subst e' x e)
   EApp e1 e2                -> EApp (subst e' x e1) (subst e' x e2)
+  ELocApp e loc             -> ELocApp (subst e' x e) loc
   EAnno e t                 -> EAnno (subst e' x e) t
 
 -- Smart constructors
@@ -45,6 +47,8 @@ eabs = EAbs . Var
 infixr 1 $$
 ($$) :: Expr -> Expr -> Expr
 ($$) = EApp
+($@) :: Expr -> Loc -> Expr
+($@) = ELocApp
 (-:) :: Expr -> Polytype -> Expr
 (-:) = EAnno
 
@@ -185,8 +189,9 @@ locExprSubst loc' l e = case e of
   EVar v -> EVar v
   EUnit -> EUnit
   EAbs v loc0 e0 -> EAbs v (locLocSubst loc' l loc0) (locExprSubst loc' l e0)
-  EApp e1 e2 -> EApp (locExprSubst loc' l e1) (locExprSubst loc' l e2)
-  EAnno e ty -> EAnno (locExprSubst loc' l e) (locSubst loc' l ty)
+  EApp e1 e2     -> EApp (locExprSubst loc' l e1) (locExprSubst loc' l e2)
+  ELocApp e loc  -> ELocApp (locExprSubst loc' l e) (locLocSubst loc' l loc)
+  EAnno e ty     -> EAnno (locExprSubst loc' l e) (locSubst loc' l ty)
 
 data ContextKind = Complete | Incomplete
 

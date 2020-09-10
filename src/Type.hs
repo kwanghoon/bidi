@@ -310,6 +310,12 @@ typesynth gamma loc expr = traceNS "typesynth" (gamma, loc, expr) $ checkwf gamm
       (a, theta) <- typesynth gamma loc e1
       typeapplysynth theta loc (apply theta a) e2
 
+    -- forall_l E
+
+    ELocApp e loc0 -> do
+      (a, theta) <- typesynth gamma loc e
+      locapplysynth theta loc (apply theta a) loc0
+
 -- | Type application synthesising
 --   typeapplysynth Γ loc A e = (C, Δ) <=> Γ |- A . e =>> C -| Δ
 typeapplysynth :: Context -> Loc -> Polytype -> Expr -> NameGen (Polytype, Context)
@@ -355,17 +361,42 @@ typeapplysynth gamma loc typ e = traceNS "typeapplysynth" (gamma, loc, typ, e) $
     _ -> error $ "typeapplysynth: don't know what to do with: "
               ++ pretty (gamma, loc, typ, e)
 
+-- | Location application synthesising
+--   locapplysynth Γ loc A loc0 = (C, Δ) <=> Γ |- A . loc0 =>> C -| Δ
+locapplysynth gamma loc typ loc0 = traceNS "locapplysynth" (gamma, loc, typ, loc0) $
+  checkwftype gamma typ $
+  case typ of
+    -- LForall LocApp
+    LForall l a -> return (locSubst loc0 l a, gamma)
+
+    -- TForall LocApp
+    TForall alpha a -> do
+      -- Do alpha conversion to avoid clashes
+      alpha' <- freshTVar 
+      locapplysynth (gamma >: CExists alpha') loc 
+                    (typeSubst (TExists alpha') alpha a)
+                    loc0
+
+    _ -> error $ "locapplysynth: don't know what to do with: "
+               ++ pretty (gamma, loc, typ, loc0)
+
 typesynthClosed :: Expr -> (Polytype, Context)
 typesynthClosed e = let (a, gamma) = evalNameGen $ typesynth mempty Client e
                      in (apply gamma a, gamma)
 
 -- Examples
-eid :: Expr -- (λx @ l. x) : ∀ t. t → t
+eid :: Expr -- (λx @ l. x) : ∀ l. ∀ t. t → t
 eid = eabs "x" (lvar "l") (var "x") -: lforall "l" (tforall "t" (tvar "t" --> lvar "l" $ tvar "t"))
+
+eid_client_unit :: Expr
+eid_client_unit = eid $@ Client $$ eunit
+
 -- Impredicative, so doesn't typecheck
 ididunit :: Expr -- (λid. id id ()) ((λx. x) : ∀ t. t → t)
 ididunit = eabs "id" (lvar "l1") (((var "id" -: tforall "t" (tvar "t" --> lvar "l" $ tvar "t"))  $$ var "id") $$ eunit) $$ eid
+
 idunit :: Expr -- (λid. id ()) ((λx. x) : ∀ t. t → t)
-idunit = eabs "id" (lvar "l") (var "id" $$ eunit) $$ eid
+idunit = (eabs "id" (lvar "l") (var "id" $$ eunit) -: lforall "l" ((tunit --> lvar "l" $ tunit) --> lvar "l" $ tunit)) $$ eid
+
 idid :: Expr -- id id
-idid = (eid $$ eid) -: tforall "t" (tvar "t" --> lvar "l" $ tvar "t")
+idid = (eid $$ eid) -: (lforall "l1" (tforall "t" (tvar "t" --> lvar "l1" $ tvar "t")))
