@@ -179,7 +179,7 @@ typesynth gamma expr = traceNS "typesynth" (gamma, expr) $ checkwf gamma $
       return (a, delta)
     -- 1I=>
     EUnit -> return (TUnit, gamma)
-    {-
+    -- {-
     -- ->I=> Original rule
     EAbs x e -> do
       x'    <- freshVar
@@ -193,8 +193,8 @@ typesynth gamma expr = traceNS "typesynth" (gamma, expr) $ checkwf gamma $
                   (subst (EVar x') x e)
                   (TExists beta)
       return (TFun (TExists alpha) (TExists beta), delta)
-    -}
-    -- {-
+    -- -}
+    {-
     -- ->I=> Full Damas-Milner type inference
     EAbs x e -> do
       x'    <- freshVar
@@ -213,7 +213,7 @@ typesynth gamma expr = traceNS "typesynth" (gamma, expr) $ checkwf gamma $
       uvars <- replicateM (length evars) freshTVar
       return ( tforalls uvars $ typeSubsts (zip (map TVar uvars) evars) tau
              , delta)
-    -- -}
+    -}
     -- ->E
     EApp e1 e2 -> do
       (a, theta) <- typesynth gamma e1
@@ -267,3 +267,6 @@ idunit :: Expr -- (λid. id ()) ((λx. x) : ∀ t. t → t)
 idunit = eabs "id" (var "id" $$ eunit) $$ eid
 idid :: Expr -- id id
 idid = (eid $$ eid) -: tforall "t" (tvar "t" --> tvar "t")
+
+idunitnotype :: Expr
+idunitnotype = eabs "x" (var "x") $$ eunit

@@ -17,60 +17,84 @@ Context: []
 Expr: (λid. id ()) ((λx. x) : ∀ t. t → t)
 typesynth([], (λid. id ()) ((λx. x) : ∀ t. t → t))
    typesynth([], λid. id ())
-      typecheck([▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a], $a (), ∃ 'b)
-         typesynth([▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a], $a ())
-            typesynth([▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a], $a)
-            =(∃ 'a, [▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a])
-            typeapplysynth([▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a], ∃ 'a, ())
-               typecheck([▶ 'a, ∃ 'd, ∃ 'c, ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a], (), ∃ 'c)
-                  typesynth([▶ 'a, ∃ 'd, ∃ 'c, ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a], ())
-                  =((), [▶ 'a, ∃ 'd, ∃ 'c, ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a])
-                  subtype([▶ 'a, ∃ 'd, ∃ 'c, ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a], (), ∃ 'c)
-                     instantiateR([▶ 'a, ∃ 'd, ∃ 'c, ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a], (), 'c)
-                     =[▶ 'a, ∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a]
-                  =[▶ 'a, ∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a]
-               =[▶ 'a, ∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a]
-            =(∃ 'd, [▶ 'a, ∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a])
-         =(∃ 'd, [▶ 'a, ∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a])
-         subtype([▶ 'a, ∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a], ∃ 'd, ∃ 'b)
-            instantiateL([▶ 'a, ∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a], 'd, ∃ 'b)
-            =[▶ 'a, ∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, $a : ∃ 'a]
-         =[▶ 'a, ∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, $a : ∃ 'a]
-      =[▶ 'a, ∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, $a : ∃ 'a]
-   =(∀ 'e. (() → 'e) → 'e, [])
-   typeapplysynth([], ∀ 'e. (() → 'e) → 'e, (λx. x) : ∀ t. t → t)
-      typeapplysynth([∃ 'f], (() → ∃ 'f) → ∃ 'f, (λx. x) : ∀ t. t → t)
-         typecheck([∃ 'f], (λx. x) : ∀ t. t → t, () → ∃ 'f)
-            typesynth([∃ 'f], (λx. x) : ∀ t. t → t)
-               typecheck([∃ 'f], λx. x, ∀ t. t → t)
-                  typecheck([∃ 'f, 'g], λx. x, 'g → 'g)
-                     typecheck([∃ 'f, 'g, $b : 'g], $b, 'g)
-                        typesynth([∃ 'f, 'g, $b : 'g], $b)
-                        =('g, [∃ 'f, 'g, $b : 'g])
-                        subtype([∃ 'f, 'g, $b : 'g], 'g, 'g)
-                        =[∃ 'f, 'g, $b : 'g]
-                     =[∃ 'f, 'g, $b : 'g]
-                  =[∃ 'f, 'g]
-               =[∃ 'f]
-            =(∀ t. t → t, [∃ 'f])
-            subtype([∃ 'f], ∀ t. t → t, () → ∃ 'f)
-               subtype([∃ 'f, ▶ 'h, ∃ 'h], ∃ 'h → ∃ 'h, () → ∃ 'f)
-                  subtype([∃ 'f, ▶ 'h, ∃ 'h], (), ∃ 'h)
-                     instantiateR([∃ 'f, ▶ 'h, ∃ 'h], (), 'h)
-                     =[∃ 'f, ▶ 'h, ∃ 'h = ()]
-                  =[∃ 'f, ▶ 'h, ∃ 'h = ()]
-                  subtype([∃ 'f, ▶ 'h, ∃ 'h = ()], (), ∃ 'f)
-                     instantiateR([∃ 'f, ▶ 'h, ∃ 'h = ()], (), 'f)
-                     =[∃ 'f = (), ▶ 'h, ∃ 'h = ()]
-                  =[∃ 'f = (), ▶ 'h, ∃ 'h = ()]
-               =[∃ 'f = (), ▶ 'h, ∃ 'h = ()]
-            =[∃ 'f = ()]
-         =[∃ 'f = ()]
-      =(∃ 'f, [∃ 'f = ()])
-   =(∃ 'f, [∃ 'f = ()])
-=(∃ 'f, [∃ 'f = ()])
+      typecheck([∃ 'a, ∃ 'b, $a : ∃ 'a], $a (), ∃ 'b)
+         typesynth([∃ 'a, ∃ 'b, $a : ∃ 'a], $a ())
+            typesynth([∃ 'a, ∃ 'b, $a : ∃ 'a], $a)
+            =(∃ 'a, [∃ 'a, ∃ 'b, $a : ∃ 'a])
+            typeapplysynth([∃ 'a, ∃ 'b, $a : ∃ 'a], ∃ 'a, ())
+               typecheck([∃ 'd, ∃ 'c, ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a], (), ∃ 'c)
+                  typesynth([∃ 'd, ∃ 'c, ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a], ())
+                  =((), [∃ 'd, ∃ 'c, ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a])
+                  subtype([∃ 'd, ∃ 'c, ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a], (), ∃ 'c)
+                     instantiateR([∃ 'd, ∃ 'c, ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a], (), 'c)
+                     =[∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a]
+                  =[∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a]
+               =[∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a]
+            =(∃ 'd, [∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a])
+         =(∃ 'd, [∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a])
+         subtype([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a], ∃ 'd, ∃ 'b)
+            instantiateL([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b, $a : ∃ 'a], 'd, ∃ 'b)
+            =[∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, $a : ∃ 'a]
+         =[∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, $a : ∃ 'a]
+      =[∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, $a : ∃ 'a]
+   =(∃ 'a → ∃ 'b, [∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd])
+   typeapplysynth([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd], (() → ∃ 'd) → ∃ 'd, (λx. x) : ∀ t. t → t)
+      typecheck([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd], (λx. x) : ∀ t. t → t, () → ∃ 'd)
+         typesynth([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd], (λx. x) : ∀ t. t → t)
+            typecheck([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd], λx. x, ∀ t. t → t)
+               typecheck([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, 'e], λx. x, 'e → 'e)
+                  typecheck([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, 'e, $b : 'e], $b, 'e)
+                     typesynth([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, 'e, $b : 'e], $b)
+                     =('e, [∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, 'e, $b : 'e])
+                     subtype([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, 'e, $b : 'e], 'e, 'e)
+                     =[∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, 'e, $b : 'e]
+                  =[∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, 'e, $b : 'e]
+               =[∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, 'e]
+            =[∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd]
+         =(∀ t. t → t, [∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd])
+         subtype([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd], ∀ t. t → t, () → ∃ 'd)
+            subtype([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, ▶ 'f, ∃ 'f], ∃ 'f → ∃ 'f, () → ∃ 'd)
+               subtype([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, ▶ 'f, ∃ 'f], (), ∃ 'f)
+                  instantiateR([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, ▶ 'f, ∃ 'f], (), 'f)
+                  =[∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, ▶ 'f, ∃ 'f = ()]
+               =[∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, ▶ 'f, ∃ 'f = ()]
+               subtype([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, ▶ 'f, ∃ 'f = ()], (), ∃ 'd)
+                  instantiateR([∃ 'd, ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, ▶ 'f, ∃ 'f = ()], (), 'd)
+                  =[∃ 'd = (), ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, ▶ 'f, ∃ 'f = ()]
+               =[∃ 'd = (), ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, ▶ 'f, ∃ 'f = ()]
+            =[∃ 'd = (), ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd, ▶ 'f, ∃ 'f = ()]
+         =[∃ 'd = (), ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd]
+      =[∃ 'd = (), ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd]
+   =(∃ 'd, [∃ 'd = (), ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd])
+=(∃ 'd, [∃ 'd = (), ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd])
 Type: ()
-Context: [∃ 'f = ()]
+Context: [∃ 'd = (), ∃ 'c = (), ∃ 'a = ∃ 'c → ∃ 'd, ∃ 'b = ∃ 'd]
+
+Expr: (λx. x) ()
+typesynth([], (λx. x) ())
+   typesynth([], λx. x)
+      typecheck([∃ 'a, ∃ 'b, $a : ∃ 'a], $a, ∃ 'b)
+         typesynth([∃ 'a, ∃ 'b, $a : ∃ 'a], $a)
+         =(∃ 'a, [∃ 'a, ∃ 'b, $a : ∃ 'a])
+         subtype([∃ 'a, ∃ 'b, $a : ∃ 'a], ∃ 'a, ∃ 'b)
+            instantiateL([∃ 'a, ∃ 'b, $a : ∃ 'a], 'a, ∃ 'b)
+            =[∃ 'a, ∃ 'b = ∃ 'a, $a : ∃ 'a]
+         =[∃ 'a, ∃ 'b = ∃ 'a, $a : ∃ 'a]
+      =[∃ 'a, ∃ 'b = ∃ 'a, $a : ∃ 'a]
+   =(∃ 'a → ∃ 'b, [∃ 'a, ∃ 'b = ∃ 'a])
+   typeapplysynth([∃ 'a, ∃ 'b = ∃ 'a], ∃ 'a → ∃ 'a, ())
+      typecheck([∃ 'a, ∃ 'b = ∃ 'a], (), ∃ 'a)
+         typesynth([∃ 'a, ∃ 'b = ∃ 'a], ())
+         =((), [∃ 'a, ∃ 'b = ∃ 'a])
+         subtype([∃ 'a, ∃ 'b = ∃ 'a], (), ∃ 'a)
+            instantiateR([∃ 'a, ∃ 'b = ∃ 'a], (), 'a)
+            =[∃ 'a = (), ∃ 'b = ∃ 'a]
+         =[∃ 'a = (), ∃ 'b = ∃ 'a]
+      =[∃ 'a = (), ∃ 'b = ∃ 'a]
+   =(∃ 'a, [∃ 'a = (), ∃ 'b = ∃ 'a])
+=(∃ 'a, [∃ 'a = (), ∃ 'b = ∃ 'a])
+Type: ()
+Context: [∃ 'a = (), ∃ 'b = ∃ 'a]
 
 Expr: ((λx. x) : ∀ t. t → t) ((λx. x) : ∀ t. t → t) : ∀ t. t → t
 typesynth([], ((λx. x) : ∀ t. t → t) ((λx. x) : ∀ t. t → t) : ∀ t. t → t)
@@ -135,17 +159,17 @@ Context: []
 Expr: (λid. (id : ∀ t. t → t) id ()) ((λx. x) : ∀ t. t → t)
 typesynth([], (λid. (id : ∀ t. t → t) id ()) ((λx. x) : ∀ t. t → t))
    typesynth([], λid. (id : ∀ t. t → t) id ())
-      typecheck([▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a], ($a : ∀ t. t → t) $a (), ∃ 'b)
-         typesynth([▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a], ($a : ∀ t. t → t) $a ())
-            typesynth([▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a], ($a : ∀ t. t → t) $a)
-               typesynth([▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a], $a : ∀ t. t → t)
-                  typecheck([▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a], $a, ∀ t. t → t)
-                     typecheck([▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a, 'c], $a, 'c → 'c)
-                        typesynth([▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a, 'c], $a)
-                        =(∃ 'a, [▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a, 'c])
-                        subtype([▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a, 'c], ∃ 'a, 'c → 'c)
-                           instantiateL([▶ 'a, ∃ 'a, ∃ 'b, $a : ∃ 'a, 'c], 'a, 'c → 'c)
-                              instantiateR([▶ 'a, ∃ 'e, ∃ 'd, ∃ 'a = ∃ 'd → ∃ 'e, ∃ 'b, $a : ∃ 'a, 'c], 'c, 'd)
-bidi-exe: The impossible happened! instantiateR: ([▶ 'a, ∃ 'e, ∃ 'd, ∃ 'a = ∃ 'd → ∃ 'e, ∃ 'b, $a : ∃ 'a, 'c], 'c, 'd)
+      typecheck([∃ 'a, ∃ 'b, $a : ∃ 'a], ($a : ∀ t. t → t) $a (), ∃ 'b)
+         typesynth([∃ 'a, ∃ 'b, $a : ∃ 'a], ($a : ∀ t. t → t) $a ())
+            typesynth([∃ 'a, ∃ 'b, $a : ∃ 'a], ($a : ∀ t. t → t) $a)
+               typesynth([∃ 'a, ∃ 'b, $a : ∃ 'a], $a : ∀ t. t → t)
+                  typecheck([∃ 'a, ∃ 'b, $a : ∃ 'a], $a, ∀ t. t → t)
+                     typecheck([∃ 'a, ∃ 'b, $a : ∃ 'a, 'c], $a, 'c → 'c)
+                        typesynth([∃ 'a, ∃ 'b, $a : ∃ 'a, 'c], $a)
+                        =(∃ 'a, [∃ 'a, ∃ 'b, $a : ∃ 'a, 'c])
+                        subtype([∃ 'a, ∃ 'b, $a : ∃ 'a, 'c], ∃ 'a, 'c → 'c)
+                           instantiateL([∃ 'a, ∃ 'b, $a : ∃ 'a, 'c], 'a, 'c → 'c)
+                              instantiateR([∃ 'e, ∃ 'd, ∃ 'a = ∃ 'd → ∃ 'e, ∃ 'b, $a : ∃ 'a, 'c], 'c, 'd)
+bidi-exe: The impossible happened! instantiateR: ([∃ 'e, ∃ 'd, ∃ 'a = ∃ 'd → ∃ 'e, ∃ 'b, $a : ∃ 'a, 'c], 'c, 'd)
 CallStack (from HasCallStack):
   error, called at src/Type.hs:138:12 in bidi-0.1.0.0-2YE488XkexRCiPc9O4TXbA:Type
