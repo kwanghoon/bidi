@@ -20,6 +20,7 @@ data Expr
   = EVar Var            -- ^ x
   | EUnit               -- ^ ()
   | EAbs Var Loc Expr   -- ^ \x @ loc. e
+  | ELocAbs LVar Expr   -- ^ /\l. e
   | EApp Expr Expr      -- ^ e1 e2
   | ELocApp Expr Loc      -- ^ e loc
   | EAnno Expr Polytype -- ^ e : A
@@ -33,6 +34,7 @@ subst e' x expr = case expr of
   EUnit                     -> EUnit
   EAbs x' loc e | x' == x   -> EAbs x' loc e
                 | otherwise -> EAbs x' loc (subst e' x e)
+  ELocAbs l e               -> ELocAbs l (subst e' x e)
   EApp e1 e2                -> EApp (subst e' x e1) (subst e' x e2)
   ELocApp e loc             -> ELocApp (subst e' x e) loc
   EAnno e t                 -> EAnno (subst e' x e) t
@@ -44,6 +46,8 @@ eunit :: Expr
 eunit = EUnit
 eabs :: String -> Loc -> Expr -> Expr
 eabs = EAbs . Var
+elocabs :: String -> Expr -> Expr
+elocabs = ELocAbs . LocVar
 infixr 1 $$
 ($$) :: Expr -> Expr -> Expr
 ($$) = EApp
@@ -189,6 +193,8 @@ locExprSubst loc' l e = case e of
   EVar v -> EVar v
   EUnit -> EUnit
   EAbs v loc0 e0 -> EAbs v (locLocSubst loc' l loc0) (locExprSubst loc' l e0)
+  ELocAbs l0 e0 | l0 == l   -> ELocAbs l0 e0
+                | otherwise -> ELocAbs l0 (locExprSubst loc' l e0)
   EApp e1 e2     -> EApp (locExprSubst loc' l e1) (locExprSubst loc' l e2)
   ELocApp e loc  -> ELocApp (locExprSubst loc' l e) (locLocSubst loc' l loc)
   EAnno e ty     -> EAnno (locExprSubst loc' l e) (locSubst loc' l ty)

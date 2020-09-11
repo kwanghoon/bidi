@@ -16,9 +16,9 @@ import Pretty
 
 -- | Algorithmic sublocation:
 subloc :: Context -> Loc -> Loc -> NameGen Context
-subloc gamma loc1 loc2 = 
+subloc gamma loc1 loc2 =
   traceNS "subloc" (gamma, loc1, loc2) $
-  checkwfloc gamma loc1 $ checkwfloc gamma loc2 $ 
+  checkwfloc gamma loc1 $ checkwfloc gamma loc2 $
     case (loc1, loc2) of
     -- <:Loc
     (Client, Client) -> return gamma
@@ -233,11 +233,11 @@ typecheck gamma loc expr typ =
       dropMarker (CForall alpha') <$>
         typecheck (gamma >: CForall alpha') loc e (typeSubst (TVar alpha') alpha a)
     -- LForallI 
-    (e, LForall l a) -> do
+    (ELocAbs l0 e, LForall l1 a) -> do
       -- Do alpha conversion to avoid clashes
       l' <- freshLVar
       dropMarker (CLForall l') <$>
-        typecheck (gamma >: CLForall l') loc (locExprSubst (Unknown l') l e) (locSubst (Unknown l') l a)
+        typecheck (gamma >: CLForall l') loc (locExprSubst (Unknown l') l0 e) (locSubst (Unknown l') l1 a)
     -- ->I
     (EAbs x loc0 e, TFun a loc' b) -> do
       x' <- freshVar
@@ -305,6 +305,14 @@ typesynth gamma loc expr = traceNS "typesynth" (gamma, loc, expr) $ checkwf gamm
       return ( tforalls uvars $ typeSubsts (zip (map TVar uvars) evars) tau
              , delta)
     -}
+    -- ->forall_l=>
+    ELocAbs l e -> do
+      l' <- freshLVar
+      (polylocty, delta) <- 
+        typesynth (gamma >++ [ CLMarker l', CLForall l' ]) 
+                  loc (locExprSubst (Unknown l') l e)
+      return (polylocty, dropMarker (CLForall l') delta)
+
     -- ->E
     EApp e1 e2 -> do
       (a, theta) <- typesynth gamma loc e1
@@ -385,18 +393,19 @@ typesynthClosed e = let (a, gamma) = evalNameGen $ typesynth mempty Client e
                      in (apply gamma a, gamma)
 
 -- Examples
-eid :: Expr -- (λx @ l. x) : ∀ l. ∀ t. t → t
-eid = eabs "x" (lvar "l") (var "x") -: lforall "l" (tforall "t" (tvar "t" --> lvar "l" $ tvar "t"))
+eid :: Expr -- (Λl. λx @ l. x) : ∀ l. ∀ t. t →_l t
+eid = elocabs "l" (eabs "x" (lvar "l") (var "x")) -: lforall "l" (tforall "t" (tvar "t" --> lvar "l" $ tvar "t"))
 
 eid_client_unit :: Expr
 eid_client_unit = eid $@ Client $$ eunit
 
 -- Impredicative, so doesn't typecheck
 ididunit :: Expr -- (λid. id id ()) ((λx. x) : ∀ t. t → t)
-ididunit = eabs "id" (lvar "l1") (((var "id" -: tforall "t" (tvar "t" --> lvar "l" $ tvar "t"))  $$ var "id") $$ eunit) $$ eid
+ididunit = elocabs "l" (eabs "id" (lvar "l") (((var "id" -: tforall "t" (tvar "t" --> lvar "l" $ tvar "t"))  $$ var "id") $$ eunit)) $$ eid
 
 idunit :: Expr -- (λid. id ()) ((λx. x) : ∀ t. t → t)
-idunit = (eabs "id" (lvar "l") (var "id" $$ eunit) -: lforall "l" ((tunit --> lvar "l" $ tunit) --> lvar "l" $ tunit)) $$ eid
+idunit = (elocabs "l" (eabs "id" (lvar "l") (var "id" $$ eunit)) -: lforall "l" ((tunit --> lvar "l" $ tunit) --> lvar "l" $ tunit)) $$ eid
 
 idid :: Expr -- id id
-idid = (eid $$ eid) -: (lforall "l1" (tforall "t" (tvar "t" --> lvar "l1" $ tvar "t")))
+idid = elocabs "l" (eid $$ eid) -: (lforall "l" (tforall "t" (tvar "t" --> lvar "l" $ tvar "t")))
+    -- This is typechecked, but the term is not allowed since e in /\l. e is not a value.

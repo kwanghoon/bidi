@@ -82,6 +82,9 @@ instance Pretty Expr where
       showString "λ" . bpretty (abs_prec + 1) v .
       showString " @ " . bpretty (abs_prec + 1) loc .
       showString ". " . bpretty abs_prec e
+    ELocAbs l e -> showParen (d > abs_prec) $
+      showString "Λ" . bpretty (abs_prec + 1) l .
+      showString ". " . bpretty abs_prec e
     EApp e1 e2   -> showParen (d > app_prec) $
       bpretty app_prec e1 . showString " " . bpretty (app_prec + 1) e2
     ELocApp e loc   -> showParen (d > app_prec) $
