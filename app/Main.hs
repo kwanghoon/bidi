@@ -6,7 +6,7 @@ import Pretty
 import Type
 
 main :: IO ()
-main = mapM_ run [eid, eid_client_unit, idunit, idid, ididunit]
+main = mapM_ run [eid, eid_client_unit, idunit, idid, idclientunit, monoidclientunit, ididunit]
 
 run eid = 
   let (polytype, context) = typesynthClosed eid

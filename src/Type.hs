@@ -409,3 +409,10 @@ idunit = (elocabs "l" (eabs "id" (lvar "l") (var "id" $$ eunit)) -: lforall "l" 
 idid :: Expr -- id id
 idid = elocabs "l" (eid $$ eid) -: (lforall "l" (tforall "t" (tvar "t" --> lvar "l" $ tvar "t")))
     -- This is typechecked, but the term is not allowed since e in /\l. e is not a value.
+
+idclientunit :: Expr 
+idclientunit = (elocabs "l" (eabs "x" (lvar "l") (var "x")) -: lforall "l" (tforall "t" (tvar "t" --> lvar "l" $ tvar "t"))) $@ Client $$ eunit
+
+
+monoidclientunit :: Expr 
+monoidclientunit = (elocabs "l" (eabs "x" (lvar "l") (var "x")) -: lforall "l" (tunit --> lvar "l" $ tunit)) $@ Client $$ eunit
