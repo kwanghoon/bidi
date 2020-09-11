@@ -238,6 +238,10 @@ dropMarker m (Context gamma) = Context $ tail $ dropWhile (/= m) gamma
 breakMarker :: ContextElem a -> GContext a -> (GContext a, GContext a)
 breakMarker m (Context xs) = let (r, _:l) = break (== m) xs in (Context l, Context r)
 
+singleoutMarker :: ContextElem a -> GContext a -> GContext a
+singleoutMarker m (Context gamma) = 
+  let (Context l, Context r) = breakMarker m (Context gamma) in (Context (l++r))
+
 instance Monoid (GContext a) where
   mempty = Context []
   mappend (Context gamma) (Context delta) = Context (delta ++ gamma)

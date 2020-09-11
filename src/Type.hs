@@ -311,7 +311,9 @@ typesynth gamma loc expr = traceNS "typesynth" (gamma, loc, expr) $ checkwf gamm
       (polylocbodyty, delta) <- 
         typesynth (gamma >++ [ CLMarker l', CLForall l' ]) 
                   loc (locExprSubst (Unknown l') l e)
-      return (LForall l' polylocbodyty, dropMarker (CLForall l') delta)
+      return (LForall l' polylocbodyty
+             , singleoutMarker (CLMarker l') 
+                 (singleoutMarker (CLForall l') delta))
 
     -- ->E
     EApp e1 e2 -> do
