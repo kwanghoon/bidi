@@ -308,10 +308,10 @@ typesynth gamma loc expr = traceNS "typesynth" (gamma, loc, expr) $ checkwf gamm
     -- ->forall_l=>
     ELocAbs l e -> do
       l' <- freshLVar
-      (polylocty, delta) <- 
+      (polylocbodyty, delta) <- 
         typesynth (gamma >++ [ CLMarker l', CLForall l' ]) 
                   loc (locExprSubst (Unknown l') l e)
-      return (polylocty, dropMarker (CLForall l') delta)
+      return (LForall l' polylocbodyty, dropMarker (CLForall l') delta)
 
     -- ->E
     EApp e1 e2 -> do
@@ -416,3 +416,6 @@ idclientunit = (elocabs "l" (eabs "x" (lvar "l") (var "x")) -: lforall "l" (tfor
 
 monoidclientunit :: Expr 
 monoidclientunit = (elocabs "l" (eabs "x" (lvar "l") (var "x")) -: lforall "l" (tunit --> lvar "l" $ tunit)) $@ Client $$ eunit
+
+idclientunitnotype :: Expr 
+idclientunitnotype = elocabs "l" (eabs "x" (lvar "l") (var "x")) $@ Client $$ eunit
