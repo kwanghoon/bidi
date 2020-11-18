@@ -27,7 +27,7 @@ subloc gamma loc1 loc2 =
     (Unknown l1, Unknown l2) | l1 == l2 -> return gamma
     -- <:ExLVar
     (UnknownExists l1, UnknownExists l2) | l1 == l2 -> return gamma
-    (UnknownExists l, loc) | l `S.notMember` freeLVarsIn loc -> 
+    (UnknownExists l, loc) | l `S.notMember` freeLVarsIn loc ->
       instantiateLocL gamma l loc
     (loc, UnknownExists l) | l `S.notMember` freeLVarsIn loc ->
       instantiateLocR gamma loc l
@@ -62,11 +62,11 @@ subtype gamma typ1 typ2 =
         subtype (gamma >: CForall alpha') a (typeSubst (TVar alpha') alpha b)
 
     -- <:forallLocR
-    (loc, LForall l b) -> do 
-      -- Do alpha conversion to avoid clashes
-      l' <- freshLVar
-      dropMarker (CLForall l') <$>
-        subtype (gamma >: CLForall l') b (locSubst (UnknownExists l') l b)
+    -- (loc, LForall l b) -> do
+    --   -- Do alpha conversion to avoid clashes
+    --   l' <- freshLVar
+    --   dropMarker (CLForall l') <$>
+    --     subtype (gamma >: CLForall l') b (locSubst (UnknownExists l') l b)
 
     -- <:forallL
     (TForall alpha a, b) -> do
@@ -78,13 +78,22 @@ subtype gamma typ1 typ2 =
                 b
 
     -- <:forallLocL
-    (LForall l a, b) -> do
-      -- Do alpha conversion to avoid clashes
-      l' <- freshLVar 
-      dropMarker (CLMarker l') <$> 
-        subtype (gamma >++ [CLMarker l', CLExists l'])
-               (locSubst (UnknownExists l') l a)
-               b
+    -- (LForall l a, b) -> do
+    --   -- Do alpha conversion to avoid clashes
+    --   l' <- freshLVar
+    --   dropMarker (CLMarker l') <$>
+    --     subtype (gamma >++ [CLMarker l', CLExists l'])
+    --            (locSubst (UnknownExists l') l a)
+    --            b
+
+    -- forallLoc
+    (LForall l1 a, LForall l2 b)
+      | l1 == l2 -> subtype gamma a b
+      | otherwise -> do
+         l <- freshLVar
+         dropMarker (CLMarker l) <$>
+           subtype (gamma >++ [CLMarker l])
+                   (locSubst (Unknown l) l1 a) (locSubst (Unknown l) l2 a)
 
     -- <:InstantiateL
     (TExists alpha, a) | alpha `elem` existentials gamma
@@ -109,7 +118,7 @@ instantiateL gamma alpha a =
     Just gamma' -> return gamma'
     Nothing -> case a of
       -- InstLReach
-      TExists beta 
+      TExists beta
         | ordered gamma alpha beta ->
             return $ fromJust $ solve gamma beta (TExists alpha)
         | otherwise ->
@@ -118,7 +127,7 @@ instantiateL gamma alpha a =
       TFun a1 loc a2   -> do
         alpha1 <- freshTVar
         alpha2 <- freshTVar
-        l      <- freshLVar
+        l <- freshLVar
         theta <- instantiateR (insertAt gamma (CExists alpha) $ context
                                 [ CLExists l
                                 , CExists alpha2
@@ -143,7 +152,7 @@ instantiateL gamma alpha a =
 
 -- | Algorithmic instantiation location (left):
 --   instantiateLocL Γ l loc = Δ <=> Γ |- l^ :=< loc -| Δ
-instantiateLocL gamma l loc = 
+instantiateLocL gamma l loc =
   traceNS "instantiateLocL" (gamma, l, loc) $
   checkwfloc gamma loc $ checkwfloc gamma (UnknownExists l) $
   case lsolve gamma l loc of
@@ -169,7 +178,7 @@ instantiateR gamma a alpha =
     Just gamma' -> return gamma'
     Nothing -> case a of
       -- InstRReach
-      TExists beta 
+      TExists beta
         | ordered gamma alpha beta ->
             return $ fromJust $ solve gamma beta (TExists alpha)
         | otherwise ->
@@ -178,7 +187,7 @@ instantiateR gamma a alpha =
       TFun a1 loc a2   -> do
         alpha1 <- freshTVar
         alpha2 <- freshTVar
-        l      <- freshLVar
+        l <- freshLVar
         theta <- instantiateL (insertAt gamma (CExists alpha) $ context
                                  [ CLExists l
                                  , CExists alpha2
@@ -187,9 +196,9 @@ instantiateR gamma a alpha =
                                                               (UnknownExists l)
                                                               (TExists alpha2)
                                  ])
-                              alpha1
-                              a1
-        instantiateR theta (apply theta a2) alpha2
+                              alpha1 a1
+        delta <- instantiateR theta (apply theta a2) alpha2
+        instantiateLocR delta (lapply delta loc) l
       -- InstRAIIL
       TForall beta b -> do
         -- Do alpha conversion to avoid clashes
@@ -203,15 +212,15 @@ instantiateR gamma a alpha =
 
 -- | Algorithmic instantiation location (right):
 --   instantiateLocR Γ loc l = Δ <=> Γ |- loc =:< l -| Δ
-instantiateLocR gamma loc l = 
-  traceNS "instantiateLocR" (gamma, loc, l) $ 
-  checkwfloc gamma loc $ checkwfloc gamma (UnknownExists l) $ 
-  case lsolve gamma l loc of 
+instantiateLocR gamma loc l =
+  traceNS "instantiateLocR" (gamma, loc, l) $
+  checkwfloc gamma loc $ checkwfloc gamma (UnknownExists l) $
+  case lsolve gamma l loc of
     Just gamma' -> return gamma'
     Nothing -> case loc of
       -- InstRReach
       UnknownExists l'
-        | lordered gamma l l' -> 
+        | lordered gamma l l' ->
             return $ fromJust $ lsolve gamma l' (UnknownExists l)
         | otherwise ->
             return $ fromJust $ lsolve gamma l (UnknownExists l')
@@ -232,7 +241,7 @@ typecheck gamma loc expr typ =
       alpha' <- freshTVar
       dropMarker (CForall alpha') <$>
         typecheck (gamma >: CForall alpha') loc e (typeSubst (TVar alpha') alpha a)
-    -- LForallI 
+    -- LForallI
     (ELocAbs l0 e, LForall l1 a) -> do
       -- Do alpha conversion to avoid clashes
       l' <- freshLVar
@@ -308,11 +317,11 @@ typesynth gamma loc expr = traceNS "typesynth" (gamma, loc, expr) $ checkwf gamm
     -- ->forall_l=>
     ELocAbs l e -> do
       l' <- freshLVar
-      (polylocbodyty, delta) <- 
-        typesynth (gamma >++ [ CLMarker l', CLForall l' ]) 
+      (polylocbodyty, delta) <-
+        typesynth (gamma >++ [ CLMarker l', CLForall l' ])
                   loc (locExprSubst (Unknown l') l e)
       return (LForall l' polylocbodyty
-             , singleoutMarker (CLMarker l') 
+             , singleoutMarker (CLMarker l')
                  (singleoutMarker (CLForall l') delta))
 
     -- ->E
@@ -340,12 +349,13 @@ typeapplysynth gamma loc typ e = traceNS "typeapplysynth" (gamma, loc, typ, e) $
                      (typeSubst (TExists alpha') alpha a)
                      e
     -- ForallApp
-    LForall l a -> do
-      -- Do alpha conversion to avoid clashes
-      l' <- freshLVar
-      typeapplysynth (gamma >: CLExists l') loc 
-                     (locSubst (UnknownExists l') l a)
-                     e
+    -- LForall l a -> do
+    --   -- Do alpha conversion to avoid clashes
+    --   l' <- freshLVar
+    --   typeapplysynth (gamma >: CLExists l') loc
+    --                  (locSubst (UnknownExists l') l a)
+    --                  e
+
     -- alpha^App
     TExists alpha -> do
       alpha1 <- freshTVar
@@ -382,8 +392,8 @@ locapplysynth gamma loc typ loc0 = traceNS "locapplysynth" (gamma, loc, typ, loc
     -- TForall LocApp
     TForall alpha a -> do
       -- Do alpha conversion to avoid clashes
-      alpha' <- freshTVar 
-      locapplysynth (gamma >: CExists alpha') loc 
+      alpha' <- freshTVar
+      locapplysynth (gamma >: CExists alpha') loc
                     (typeSubst (TExists alpha') alpha a)
                     loc0
 
@@ -402,22 +412,21 @@ eid_client_unit :: Expr
 eid_client_unit = eid $@ Client $$ eunit
 
 -- Impredicative, so doesn't typecheck
-ididunit :: Expr -- (λid. id id ()) ((λx. x) : ∀ t. t → t)
-ididunit = elocabs "l" (eabs "id" (lvar "l") (((var "id" -: tforall "t" (tvar "t" --> lvar "l" $ tvar "t"))  $$ var "id") $$ eunit)) $$ eid
+impredicative_ididunit :: Expr -- (λid. id id ()) ((λx. x) : ∀ t. t → t)
+impredicative_ididunit = elocabs "l" (eabs "id" (lvar "l") (((var "id" -: tforall "t" (tvar "t" --> lvar "l" $ tvar "t"))  $$ var "id") $$ eunit)) $$ eid
 
 idunit :: Expr -- (λid. id ()) ((λx. x) : ∀ t. t → t)
-idunit = (elocabs "l" (eabs "id" (lvar "l") (var "id" $$ eunit)) -: lforall "l" ((tunit --> lvar "l" $ tunit) --> lvar "l" $ tunit)) $$ eid
+idunit = ((elocabs "l" (eabs "id" (lvar "l") (var "id" $$ eunit)) -: lforall "l" ((tunit --> lvar "l" $ tunit) --> lvar "l" $ tunit)) $@ Client) $$ (eid $@ Client)
 
 idid :: Expr -- id id
-idid = elocabs "l" (eid $$ eid) -: (lforall "l" (tforall "t" (tvar "t" --> lvar "l" $ tvar "t")))
-    -- This is typechecked, but the term is not allowed since e in /\l. e is not a value.
+idid =  (eid $@ Client) $$ (eid $@ Server)
 
-idclientunit :: Expr 
+idclientunit :: Expr
 idclientunit = (elocabs "l" (eabs "x" (lvar "l") (var "x")) -: lforall "l" (tforall "t" (tvar "t" --> lvar "l" $ tvar "t"))) $@ Client $$ eunit
 
 
-monoidclientunit :: Expr 
+monoidclientunit :: Expr
 monoidclientunit = (elocabs "l" (eabs "x" (lvar "l") (var "x")) -: lforall "l" (tunit --> lvar "l" $ tunit)) $@ Client $$ eunit
 
-idclientunitnotype :: Expr 
+idclientunitnotype :: Expr
 idclientunitnotype = elocabs "l" (eabs "x" (lvar "l") (var "x")) $@ Client $$ eunit
