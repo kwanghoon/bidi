@@ -270,3 +270,9 @@ idid = (eid $$ eid) -: tforall "t" (tvar "t" --> tvar "t")
 
 idunitnotype :: Expr
 idunitnotype = eabs "x" (var "x") $$ eunit
+
+idnotype :: Expr
+idnotype = eabs "x" (var "x")
+
+polyidunit :: Expr
+polyidunit = eid $$ eunit
