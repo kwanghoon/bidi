@@ -1,15 +1,20 @@
 # The bidirectional type checking algorithms for higher-ranked polymorphism
 
-- This contains a bidirectional type checking algorithm for higer-ranked polymorphism proposed by [Jana Dunfield and Neelakantan R. Krishnaswami's ICFP 2013 paper, Complete and easy bidirectional typechecking for higer-order rank polymorphism](https://research.cs.queensu.ca/home/jana/papers/bidir/). 
+- Two bidirectional type checking algorithms for higer-ranked polymorphism.
 
-- [Olle Fredriksson](https://ollef.github.io/blog/) implemented this algorithm in Haskell. Here is [his Haskell implementation](https://github.com/ollef/Bidirectional). 
+-- One is proposed by [Jana Dunfield and Neelakantan R. Krishnaswami's ICFP 2013 paper, Complete and easy bidirectional typechecking for higer-order rank polymorphism](https://research.cs.queensu.ca/home/jana/papers/bidir/). 
 
-- There is another bidirectional type checking algorithm based on so called work list proposed by [Jinxu Zhao, Bruno C. d. S. Oliveira1 , and Tom Schrijvers's ICFP 2019 paper, A Mechanical Formalization of Higher-Ranked Polymorphic Type Inference](https://i.cs.hku.hk/~bruno/papers/icfp2019.pdf) where the original algorithm is simplified and so mechanically proved using Abella. 
-
-- This repository contains Olle's implementation that I have slightly revised to correct some compilation error due to some version problem. This repository also contains a Haskell implementation of Zhao et al's algorithm. You can compare two algorithms. 
+-- The other algorithm based on so called work list proposed by [Jinxu Zhao, Bruno C. d. S. Oliveira1 , and Tom Schrijvers's ICFP 2019 paper, A Mechanical Formalization of Higher-Ranked Polymorphic Type Inference](https://i.cs.hku.hk/~bruno/papers/icfp2019.pdf) where the original algorithm is simplified and so mechanically proved using Abella. 
 
 
-- How to build
+- Haskell Implementation of the two algorithms
+
+-- One is what I slightly revised [Olle Fredriksson](https://ollef.github.io/blog/)'s [implementation](https://github.com/ollef/Bidirectional).
+
+-- I myself have implemented Zhao et al's algorithm. 
+
+
+## How to build and run
 
 ```
 $ git clone https://github.com/kwanghoon/bidi
