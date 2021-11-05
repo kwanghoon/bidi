@@ -273,7 +273,9 @@ alty tr@(WJC (TypeResult ty) : wl) =
   return ty
 
 -- 
-alty (_ : wl) = error "Not implemented yet"
+alty tr@wl =
+  traceNS "somethin worng: " tr $
+  error "Not implemented yet"
 
 
 --
@@ -337,6 +339,7 @@ typeSubstJC t' alpha jc =
     Check e ty -> Check e (typeSubst t' alpha ty)
     Synth e x jc -> Synth e x (typeSubstJC t' alpha jc)
     Typeapply a e x jc -> Typeapply (typeSubst t' alpha a) e x (typeSubstJC t' alpha jc)
+    TypeResult ty -> TypeResult (typeSubst t' alpha ty)
 
 findVarType :: Worklist -> Var -> Maybe Polytype
 findVarType wl x = listToMaybe [t | WVar y t <- wl, x==y]
