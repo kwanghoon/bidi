@@ -57,3 +57,9 @@ traceNS f args x = do
     res <- x
     modify $ \s -> s {indent = ilevel}
     trace (ind ++ "=" ++ pretty res) $ return res
+
+traceSeq :: (Pretty a, Pretty b) => String -> a -> NameGen b -> NameGen b
+traceSeq f args x = do
+  trace (f ++ " " ++ pretty args) $
+    do res <- x
+       return res

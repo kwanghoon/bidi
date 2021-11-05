@@ -59,47 +59,47 @@ alty :: Worklist -> NameGen Polytype
 
 -- | (1) ~ (3)
 alty tr@(WForall tvar : wl) =    -- (1) Gamma, a   ---> Gamma
-  traceNS "(1)" tr $
+  traceSeq "(1)" tr $
   alty wl
 
 alty tr@(WExists tvar : wl) =    -- (2) Gamma, a^  ---> Gamma
-  traceNS "(2)" tr $
+  traceSeq "(2)" tr $
   alty wl
 
 alty tr@(WVar var ty : wl) =     -- (3) Gamma, x:A ---> Gamma
-  traceNS "(3)" tr $
+  traceSeq "(3)" tr $
   alty wl
 
 -- (4) ~ (11)
 alty tr@(WJC (Subty TUnit TUnit) : wl) =      -- (4) Gamma ||- 1 <: 1 ---> Gamma
-  traceNS "(4)" tr $
+  traceSeq "(4)" tr $
   alty wl
 
 alty tr@(WJC (Subty (TVar v1) (TVar v2)) : wl)       -- (5) Gamma ||- a <: a ---> Gamma
   | v1 == v2 =
-      traceNS "(5)" tr $
+      traceSeq "(5)" tr $
       alty wl
   
 alty tr@(WJC (Subty (TExists v1) (TExists v2)) : wl) -- (6) Gamma ||- a^ <: a^ ---> Gamma
   | v1 == v2 =
-      traceNS "(6)" tr $
+      traceSeq "(6)" tr $
       alty wl
 
 -- (7) Gamma ||- A1->A2 <: B1->B2 ---> Gamma ||- A2 <: B2 ||- B1 <: A1
 alty tr@(WJC (Subty (TFun a1 a2) (TFun b1 b2)) : wl) 
-  = traceNS "(7)" tr $
+  = traceSeq "(7)" tr $
     alty (WJC (Subty b1 a1) : WJC (Subty a2 b2) : wl)
 
 -- (8) Gamma ||- forall a.A <: B ---> Gamma, a^ ||- [a^/a]A <: B (when B != forall a.B')
 alty tr@(WJC (Subty (TForall v a) b) : wl)
   | not (isTForall b) =
-    traceNS "(8)" tr $
+    traceSeq "(8)" tr $
     do alpha <- freshTVar
        alty (WJC (Subty (typeSubst (TExists alpha) v a ) b)  : WExists alpha : wl)
 
 -- (9) Gamma ||- a <: forall b.B ---> Gamma, b ||- A <: B
 alty tr@(WJC (Subty a (TForall v b)) : wl) =
-  traceNS "(9)" tr $
+  traceSeq "(9)" tr $
   do alpha <- freshTVar
      alty (WJC (Subty a (typeSubst (TVar alpha) v b)) : WForall alpha : wl)
 
@@ -110,7 +110,7 @@ alty tr@(WJC (Subty (TExists v) (TFun a b)) : wl)
     && v `S.notMember` freeTVars a
     && v `S.notMember` freeTVars b =
 
-    traceNS "(10)" tr $
+    traceSeq "(10)" tr $
     do alpha1 <- freshTVar
        alpha2 <- freshTVar
 
@@ -125,7 +125,7 @@ alty tr@(WJC (Subty (TFun a b) (TExists v)) : wl)
     && v `S.notMember` freeTVars a
     && v `S.notMember` freeTVars b =
 
-    traceNS "(11)" tr $
+    traceSeq "(11)" tr $
     do alpha1 <- freshTVar
        alpha2 <- freshTVar
 
@@ -138,12 +138,12 @@ alty tr@(WJC (Subty (TFun a b) (TExists v)) : wl)
 
 alty tr@(WJC (Subty (TExists alpha) (TExists beta)) : wl)
   | orderedWL wl alpha beta =
-      traceNS "(12)" tr $
+      traceSeq "(12)" tr $
       alty (typeSubstWL (TExists alpha) beta
             (insertAtWL wl (WExists beta) []))
       
   | orderedWL wl beta alpha =
-      traceNS "(13)" tr $
+      traceSeq "(13)" tr $
       alty (typeSubstWL (TExists alpha) beta
             (insertAtWL wl (WExists beta) []))
 
@@ -152,13 +152,13 @@ alty tr@(WJC (Subty (TExists alpha) (TExists beta)) : wl)
 
 alty tr@(WJC (Subty (TVar alpha) (TExists beta)) : wl)
   | WForall alpha `elem` dropMarkerWL (WExists beta) wl =
-      traceNS "(14)" tr $
+      traceSeq "(14)" tr $
       alty (typeSubstWL (TVar alpha) beta
             (insertAtWL wl (WExists beta) []))
 
 alty tr@(WJC (Subty (TExists beta) (TVar alpha)) : wl)
   | WForall alpha `elem` dropMarkerWL (WExists beta) wl =
-      traceNS "(15)" tr $
+      traceSeq "(15)" tr $
       alty (typeSubstWL (TVar alpha) beta
             (insertAtWL wl (WExists beta) []))
 
@@ -167,13 +167,13 @@ alty tr@(WJC (Subty (TExists beta) (TVar alpha)) : wl)
 
 alty tr@(WJC (Subty TUnit (TExists beta)) : wl)
   | beta `elem` existentialsWL wl =
-      traceNS "(16)" tr $
+      traceSeq "(16)" tr $
       alty (typeSubstWL TUnit beta
             (insertAtWL wl (WExists beta) []))
 
 alty tr@(WJC (Subty (TExists beta) TUnit) : wl)
   | beta `elem` existentialsWL wl =
-      traceNS "(17)" tr $
+      traceSeq "(17)" tr $
       alty (typeSubstWL TUnit beta
             (insertAtWL wl (WExists beta) []))
 
@@ -181,27 +181,27 @@ alty tr@(WJC (Subty (TExists beta) TUnit) : wl)
 --      (when e not= lamx.e' and B not= forall a.B')
 alty tr@(WJC (Check e b) : wl)
   | isAbs e == False && isTForall b == False =
-      traceNS "(18)" tr $
+      traceSeq "(18)" tr $
       do alpha <- freshTVar
          alty (WJC (Synth e alpha (Subty (TVar alpha) b)) : wl)
 
 -- (19) Gamma ||- e <= forall a.A ---> Gamma,a ||- e <= A
 alty tr@(WJC (Check e (TForall alpha a)) : wl) =
-  traceNS "(19)" tr $
+  traceSeq "(19)" tr $
   do alpha' <- freshTVar
      let a' = typeSubst (TVar alpha') alpha a
      alty (WJC (Check e a') : WForall alpha' : wl)
 
 -- (20) Gamma ||- lam x.e <= A->B ---> Gamma, x:A ||- e <= B
 alty tr@(WJC (Check (EAbs x e) (TFun a b)) : wl) =
-  traceNS "(20)" tr $
+  traceSeq "(20)" tr $
   alty (WJC (Check e b) : (WVar x a) : wl)
 
 -- (21) Gamma[a^] ||- lam x.e <= a^ --->
 --      [a1^->a2^/a^](Gamma[a1^,a2^],x:a1^ ||- e <= a2^)
 alty tr@(WJC (Check (EAbs x e) (TExists alpha)) : wl)
   | alpha `elem` existentialsWL wl = 
-      traceNS "(21)" tr $
+      traceSeq "(21)" tr $
       do alpha1 <- freshTVar
          alpha2 <- freshTVar
          alty (typeSubstWL (TFun (TExists alpha1) (TExists alpha2)) alpha
@@ -211,25 +211,25 @@ alty tr@(WJC (Check (EAbs x e) (TExists alpha)) : wl)
 
 -- (22) Gamma ||- x =>_a w ---> Gamma ||- [A/a]w  (when x:A in Gamma)
 alty tr@(WJC (Synth (EVar x) alpha jc) : wl) = 
-  traceNS "(22)" tr $
+  traceSeq "(22)" tr $
   case findVarType wl x of
     Just ty -> alty (typeSubstWL ty alpha (WJC jc : wl))
     Nothing -> error ("Var not found: " ++ show x)
 
 -- (23) Gamma ||- (e : A) =>_a w ---> Gamma ||- [A/a]w ||- e <= A
 alty tr@(WJC (Synth (EAnno e a) alpha jc) : wl) =
-  traceNS "(23)" tr $
+  traceSeq "(23)" tr $
   alty (WJC (Check e a) : WJC (typeSubstJC a alpha jc) : wl)
 
 -- (24) Gamma ||- () =>_a w ---> Gamma ||- [1/a]w
 alty tr@(WJC (Synth EUnit  alpha jc) : wl) =
-  traceNS "(24)" tr $
+  traceSeq "(24)" tr $
   alty (WJC (typeSubstJC TUnit alpha jc) : wl)
 
 -- (25) Gamma ||- lam x.e =>_a w --->
 --      Gamma,alpha^,beta^ ||- [alpha^->beta^/a]w, x:alpha^ ||- e <= beta^
 alty tr@(WJC (Synth (EAbs x e) alpha jc) : wl) =
-  traceNS "(25)" tr $
+  traceSeq "(25)" tr $
   do beta1 <- freshTVar
      beta2 <- freshTVar
      alty (WJC (Check e (TExists beta2)) : WVar x (TExists beta1)
@@ -239,42 +239,46 @@ alty tr@(WJC (Synth (EAbs x e) alpha jc) : wl) =
 
 -- (26) Gamma ||- e1 e2 =>_a w ---> Gamma ||- e1 =>_b (b dot e_2 =>>_a w)
 alty tr@(WJC (Synth (EApp e1 e2) alpha jc) : wl) =
-  traceNS "(26)" tr $
+  traceSeq "(26)" tr $
   do beta <- freshTVar
      alty (WJC (Synth e1 beta (Typeapply (TVar beta) e2 alpha jc)) : wl)
 
 -- (27) Gamma ||- forall b.A dot e =>>_a w --->
 --      Gamma, a^ ||- [a^/b]A dot e =>>_a w
 alty tr@(WJC (Typeapply (TForall beta ty) e alpha jc) : wl) =
-  traceNS "(27)" tr $
+  traceSeq "(27)" tr $
   do beta1 <- freshTVar
      alty (WJC (Typeapply (typeSubst (TExists beta1) beta ty) e alpha jc)
            : WExists beta1 : wl)
 
 -- (28) Gamma ||- A->C dot e =>>_a w ---> Gamma ||- [C/a]w ||- e <= A
 alty tr@(WJC (Typeapply (TFun a c) e alpha jc) : wl) =
-  traceNS "(28)" tr $
+  traceSeq "(28)" tr $
   alty (WJC (Check e a) : WJC (typeSubstJC c alpha jc) : wl)
 
--- (29) Gamma[a^] ||- b^ dot e =>>_a w --->
---      [a1^->a2^/a^](Gamma[a1^,a2^] ||- a1^->a2^ dot e =>>_a w)
+-- (29) Gamma[b^] ||- b^ dot e =>>_a w --->
+--      [a1^->a2^/b^](Gamma[a1^,a2^] ||- a1^->a2^ dot e =>>_a w)
 alty tr@(WJC (Typeapply (TExists beta) e alpha jc) : wl)
   | beta `elem` existentialsWL wl =
-      traceNS "(29)" tr $
+      traceSeq "(29)" tr $
       do alpha1 <- freshTVar
          alpha2 <- freshTVar
-         alty (typeSubstWL (TFun (TExists alpha1) (TExists alpha2)) alpha
+         alty (typeSubstWL (TFun (TExists alpha1) (TExists alpha2)) beta
               (WJC (Typeapply (TFun (TExists alpha1) (TExists alpha2)) e alpha jc)
-               : insertAtWL wl (WExists alpha) [WExists alpha1, WExists alpha2]))
+               : insertAtWL wl (WExists beta) [WExists alpha1, WExists alpha2]))
 
 -- Extra
-alty tr@(WJC (TypeResult ty) : wl) =
-  traceNS "(result)" tr $
+alty tr@[WJC (TypeResult ty)] =
+  traceSeq "(result)" tr $
   return ty
+
+alty tr@(WJC (TypeResult ty) : wl) =
+  traceSeq "(move back)" tr $
+  alty (wl ++ [WJC (TypeResult ty)])
 
 -- 
 alty tr@wl =
-  traceNS "somethin worng: " tr $
+  traceSeq "somethin worng: " tr $
   error "Not implemented yet"
 
 
@@ -282,7 +286,7 @@ alty tr@wl =
 altyClosed :: Expr -> Polytype
 altyClosed prog = evalNameGen $
   do alpha <- freshTVar
-     alty [WJC (Synth prog alpha (TypeResult (TExists alpha)))]
+     alty [ WJC (Synth prog alpha (TypeResult (TExists alpha))) ]
 
 
 -- isTForall a
