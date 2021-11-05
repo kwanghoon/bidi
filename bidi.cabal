@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ebfd9a0669d12a6925caa00b9dedd4547c46b658eaa530b24f68e9b3f658046b
+-- hash: 5b7ca23ef31a198f44afbc1e2861d5b28475fe4a7d21c543419807146c7377b7
 
 name:           bidi
 version:        0.1.0.0
@@ -33,6 +33,7 @@ library
       NameGen
       Pretty
       Type
+      Worklist
   other-modules:
       Paths_bidi
   hs-source-dirs:
