@@ -9,10 +9,10 @@
 
 - Haskell Implementation of the two algorithms
 
-  * One is what I slightly revised [Olle
-    Fredriksson](https://ollef.github.io/blog/)'s
-    [implementation](https://github.com/ollef/Bidirectional) for
-    Dunfield and Krishnaswami's algorithm.
+  * One is [Olle Fredriksson](https://ollef.github.io/blog/)'s
+    [implementation](https://github.com/ollef/Bidirectional) of
+    Dunfield and Krishnaswami's algorithm, which I have slightly
+    revised just to correct some version mismatch error.
 
   * I myself have implemented Zhao et al's algorithm. 
 
@@ -38,7 +38,7 @@ $ stack exec -- bidi-exe
 $ stack exec -- bidi-exe worklist
 ```
 
-## A polymorphic location inference algorithm for higher-rnaked polymorphism
+## A polymorphic location inference algorithm for higher-ranked polymorphism
 
 - In [PolyRPC](https://github.com/kwanghoon/polyrpc), I have
   implemented a location inference algorithm for the predicative

@@ -268,13 +268,13 @@ alty tr@(WJC (Typeapply (TExists beta) e alpha jc) : wl)
                : insertAtWL wl (WExists beta) [WExists alpha1, WExists alpha2]))
 
 -- Extra
-alty tr@[WJC (TypeResult ty)] =
-  traceSeq "(result)" tr $
+alty tr@(WJC (TypeResult ty):wl) =
+  traceSeq "(extra)" tr $
   return ty
 
-alty tr@(WJC (TypeResult ty) : wl) =
-  traceSeq "(move back)" tr $
-  alty (wl ++ [WJC (TypeResult ty)])
+-- alty tr@(WJC (TypeResult ty) : wl) =
+--   traceSeq "(move back)" tr $
+--   alty (wl ++ [WJC (TypeResult ty)])
 
 -- 
 alty tr@wl =
