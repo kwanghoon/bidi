@@ -9,7 +9,7 @@
 
 - Haskell Implementation of the two algorithms
 
-  * One is [Olle Fredriksson](https://ollef.github.io/blog/)'s
+  * One is [Olle Fredriksson @ollef](https://ollef.github.io/blog/)'s
     [implementation](https://github.com/ollef/Bidirectional) of
     Dunfield and Krishnaswami's algorithm, which I have slightly
     revised just to correct some version mismatch error.
